@@ -6,35 +6,39 @@ An AI-based student-focused system that assesses skills, recommends suitable car
 
 The project aims to help college students understand their current skills and identify suitable career paths based on their skill levels and assessment results.
 
-The system combines self-assessment and objective skill assessment to generate individual skill scores. These scores are then used for explainable career matching, skill-gap analysis, and personalized learning guidance.
+The system combines self-assessment with adaptive objective assessment to generate individual skill scores. These scores are then used for career matching, skill-gap analysis, and personalized learning guidance.
 
-### Key Features
+## Key Features
 
 - Student profile creation
-- Self-assessment of skills
-- Objective skill assessment through questions
+- Self-assessment of technical skills
+- Adaptive objective assessment based on confidence level
+- Five questions per skill at the selected difficulty level
 - Individual skill score generation
 - Personalized career recommendations
 - Explainable career match analysis
 - Current vs. target skill-gap analysis
 - Skill-gap prioritization
 - Personalized Learn–Practice–Build roadmap
-- Results and visualization dashboard
+- Direct learning resources and YouTube learning links
+- Results and skill visualizations
 
 ## System Workflow
 
-Student Profile  
-↓  
-Self-Assessment + Objective Assessment  
-↓  
-Skill Score Calculation  
-↓  
-Career Recommendation  
-↓  
-Skill Gap Analysis  
-↓  
-Skill Gap Prioritization  
-↓  
+Student Profile
+↓
+Self-Assessment
+↓
+Adaptive Objective Assessment
+↓
+Skill Score Calculation
+↓
+Career Recommendation
+↓
+Skill Gap Analysis
+↓
+Skill Gap Prioritization
+↓
 Personalized Learning Roadmap
 
 ## Technologies Used
@@ -53,18 +57,19 @@ Personalized Learning Roadmap
 
 ## Project Status
 
-Currently in the **development and prototype implementation phase**.
+Currently in the development and prototype implementation phase.
 
-The core workflow has been implemented, including skill assessment, skill scoring, career recommendation, skill-gap analysis, and personalized learning roadmap generation.
+The core workflow has been implemented, including adaptive skill assessment, skill scoring, career recommendation, skill-gap analysis, and personalized learning roadmap generation.
 
 ## Future Scope
 
-- Integration of machine learning models for improved career prediction
-- Larger and more diverse student datasets
-- Resume and project-based skill analysis
-- Integration of real-time industry skill requirements
-- More advanced personalized learning recommendations
-- Model comparison and performance evaluation
+- Larger and more detailed skill assessments
+- Coding and project-based skill evaluation
+- Machine-learning-based career prediction using suitable student datasets
+- Resume and NLP-based skill extraction
+- Dynamic industry skill requirements
+- Continuous updating of student skill profiles
+- Larger-scale validation across branches and institutions
 
 ## University
 
