@@ -477,21 +477,35 @@ def get_difficulty(confidence):
     return DIFFICULTY_MAP[confidence]
 
 
-def get_adaptive_questions(self_ratings, questions_per_skill=5):
-    """
-    Return exactly `questions_per_skill` questions for each skill.
 
-    Difficulty is determined from the student's confidence rating:
-    1-2 -> beginner, 3 -> intermediate, 4 -> advanced, 5 -> expert.
+def get_adaptive_questions(self_ratings, questions_per_skill=3, branch="CSE", semester=1):
     """
+    Return the requested number of questions for each skill.
+    Difficulty considers confidence and semester.
+    """
+
     selected = []
 
+    # Normalize semester to a valid range.
+    semester = max(1, min(8, int(semester)))
+
     for skill in SKILL_LABELS:
-        difficulty = get_difficulty(self_ratings.get(skill, 3))
+        confidence = self_ratings.get(skill, 3)
+        difficulty = get_difficulty(confidence)
+
+        # Early-semester students get a gentler starting difficulty.
+        if semester <= 2:
+            if difficulty in ("advanced", "expert"):
+                difficulty = "intermediate"
+        elif semester <= 4:
+            if difficulty == "expert":
+                difficulty = "advanced"
+
         pool = QUESTION_BANK[skill][difficulty]
         selected.extend(pool[:questions_per_skill])
 
     return selected
+
 
 
 def calculate_skill_scores(self_ratings, quiz_answers):

@@ -1,11 +1,14 @@
 import streamlit as st
 import streamlit.components.v1 as components
 import plotly.graph_objects as go
+import requests
 
-from assessment import SKILL_LABELS, get_adaptive_questions, get_difficulty, calculate_skill_scores
+from assessment import SKILL_LABELS, get_adaptive_questions, get_difficulty
 from recommendation import recommend_careers, get_career_match_details
 from skill_gap import analyze_skill_gap
 from roadmap import generate_roadmap
+
+API_BASE_URL = "http://127.0.0.1:8000"
 
 st.set_page_config(
     page_title="CareerGuide AI",
@@ -159,7 +162,7 @@ if not st.session_state.get("assessment_complete", False) and st.session_state.g
     st.divider()
     st.markdown("<div class='section-kicker'>03 / ADAPTIVE OBJECTIVE KNOWLEDGE CHECK</div>", unsafe_allow_html=True)
     st.header("Your questions are ready.")
-    st.caption("The system created a 5-question set for every skill using the confidence ratings you submitted.")
+    st.caption("The system created a 3-question set for every skill using the confidence ratings you submitted.")
 
     difficulty_summary = []
     for skill in SKILL_LABELS:
@@ -173,7 +176,7 @@ if not st.session_state.get("assessment_complete", False) and st.session_state.g
         "<span class='chip'>3 • INTERMEDIATE</span>"
         "<span class='chip'>4 • ADVANCED</span>"
         "<span class='chip'>5 • EXPERT</span>"
-        "<span class='chip'>5 QUESTIONS / SKILL</span>"
+        "<span class='chip'>3 QUESTIONS / SKILL</span>"
         "</div>",
         unsafe_allow_html=True
     )
@@ -194,67 +197,179 @@ if not st.session_state.get("assessment_complete", False) and st.session_state.g
         st.session_state["assessment_complete"] = False
         st.rerun()
 
-    adaptive_questions = get_adaptive_questions(st.session_state["self_ratings"], questions_per_skill=5)
+
+# ---------------------------------------------------------------
+# API QUESTIONS + STAGE 2 QUIZ
+# ---------------------------------------------------------------
+if (
+    not st.session_state.get("assessment_complete", False)
+    and st.session_state.get("assessment_stage", 1) == 2
+):
+    
+    try:
+        response = requests.post(
+            f"{API_BASE_URL}/api/assessment/questions",
+            json={
+                "self_ratings": st.session_state["self_ratings"],
+                "branch": st.session_state["student_info"]["branch"],
+                "semester": int(
+                  str(st.session_state["student_info"]["semester"])
+                    .replace("th", "")
+                    .replace("st", "")
+                    .replace("nd", "")
+                    .replace("rd", "")
+                ),
+            },
+            timeout=15,
+        )
+        response.raise_for_status()
+        adaptive_questions = response.json()["questions"]
+
+    except requests.RequestException as exc:
+        st.error(f"Could not load assessment questions: {exc}")
+        st.stop()
+
     quiz_answers = {skill: [] for skill in SKILL_LABELS}
     question_number_by_skill = {skill: 0 for skill in SKILL_LABELS}
 
     with st.form("adaptive_knowledge_form"):
         for q_start in range(0, len(adaptive_questions), 2):
             cols = st.columns(2, gap="large")
-            for col, question in zip(cols, adaptive_questions[q_start:q_start+2]):
+
+            for col, question in zip(
+                cols, adaptive_questions[q_start:q_start + 2]
+            ):
                 skill = question["skill"]
+                question_id = question["question_id"]
+
                 question_number_by_skill[skill] += 1
                 q_num = question_number_by_skill[skill]
                 difficulty_label = question["difficulty"].upper()
+
                 with col:
                     st.markdown(
-                        f"<div style='padding:14px 16px 8px;border-radius:16px 16px 0 0;background:rgba(255,255,255,.026);border:1px solid rgba(255,255,255,.055);border-bottom:none;'>"
-                        f"<div style='display:flex;justify-content:space-between;gap:10px;align-items:center;'>"
-                        f"<div style='color:#7f8ba5;font-size:10px;font-weight:850;letter-spacing:.13em;'>{SKILL_LABELS[skill].upper()} • Q{q_num}/5</div>"
-                        f"<div class='chip'>{difficulty_label}</div></div>"
-                        f"<div style='color:#f1f3fb;font-size:15px;font-weight:800;margin-top:8px;'>{question['question']}</div></div>",
-                        unsafe_allow_html=True
+                        f"<div style='padding:14px 16px 8px;"
+                        f"border-radius:16px 16px 0 0;"
+                        f"background:rgba(255,255,255,.026);"
+                        f"border:1px solid rgba(255,255,255,.055);"
+                        f"border-bottom:none;'>"
+                        f"<div style='display:flex;justify-content:"
+                        f"space-between;gap:10px;align-items:center;'>"
+                        f"<div style='color:#7f8ba5;font-size:10px;"
+                        f"font-weight:850;letter-spacing:.13em;'>"
+                        f"{SKILL_LABELS[skill].upper()} • Q{q_num}/3"
+                        f"</div><div class='chip'>{difficulty_label}</div>"
+                        f"</div><div style='color:#f1f3fb;font-size:15px;"
+                        f"font-weight:800;margin-top:8px;'>"
+                        f"{question['question']}</div></div>",
+                        unsafe_allow_html=True,
                     )
+
                     answer = st.radio(
                         "Answer",
                         question["options"],
-                        key=f"quiz_{skill.replace(' ','_')}_{q_num}",
+                        key=f"quiz_{question_id}",
                         index=None,
-                        label_visibility="collapsed"
+                        label_visibility="collapsed",
                     )
-                    quiz_answers[skill].append((answer, question))
 
         st.write("")
         _, button_col, _ = st.columns([1.25, 1, 1.25])
+
         with button_col:
             generate_insights = st.form_submit_button(
                 "✦ Generate Career Insights",
                 type="primary",
-                use_container_width=True
+                use_container_width=True,
             )
 
     if generate_insights:
-        if any(len(items) != 5 or any(answer is None for answer, _ in items) for items in quiz_answers.values()):
-            st.warning("Please answer all 5 objective questions for every skill before generating results.")
-        else:
-            student = st.session_state["student_info"]
-            skill_results = calculate_skill_scores(st.session_state["self_ratings"], quiz_answers)
-            skill_scores = {skill: result["score"] for skill, result in skill_results.items()}
-            demonstrated_skills = [skill for skill, score in skill_scores.items() if score >= 60]
-            user_profile = {
-                "name": student["name"],
-                "branch": student["branch"],
-                "semester": student["semester"],
-                "skills": demonstrated_skills,
-                "skill_scores": skill_scores,
-                "skill_results": skill_results,
-            }
-            careers = recommend_careers(user_profile, top_n=3)
-            st.session_state["user_profile"] = user_profile
-            st.session_state["careers"] = careers
-            st.session_state["assessment_complete"] = True
-            st.session_state["scroll_to_results"] = True
-            st.rerun()
+        responses = []
+
+        for question in adaptive_questions:
+            question_id = question["question_id"]
+            selected_option = st.session_state.get(f"quiz_{question_id}")
+
+            if selected_option is None:
+                st.warning("Please answer all 36 questions before generating results.")
+                st.stop()
+
+            responses.append({
+                "skill": question["skill"],
+                "question_id": question_id,
+                "selected_option": selected_option,
+            })
+
+        try:
+            score_response = requests.post(
+                f"{API_BASE_URL}/api/assessment/score",
+                
+json={
+    "self_ratings": st.session_state["self_ratings"],
+    "responses": responses,
+    "branch": st.session_state["student_info"]["branch"],
+    "semester": int(
+        str(st.session_state["student_info"]["semester"])
+        .replace("th", "")
+        .replace("st", "")
+        .replace("nd", "")
+        .replace("rd", "")
+    ),
+},
+
+                timeout=20,
+            )
+            score_response.raise_for_status()
+            skill_results = score_response.json()["skill_results"]
+
+        except requests.RequestException as exc:
+            st.error(f"Could not calculate assessment scores: {exc}")
+            st.stop()
+
+        student = st.session_state["student_info"]
+        skill_scores = {
+            skill: result["score"]
+            for skill, result in skill_results.items()
+        }
+
+        demonstrated_skills = [
+            skill for skill, score in skill_scores.items()
+            if score >= 60
+        ]
+
+        user_profile = {
+            "name": student["name"],
+            "branch": student["branch"],
+            "semester": student["semester"],
+            "skills": demonstrated_skills,
+            "skill_scores": skill_scores,
+            "skill_results": skill_results,
+        }
+
+        try:
+            response = requests.post(
+                f"{API_BASE_URL}/api/recommendations",
+                json={
+                    "name": student["name"],
+                    "branch": student["branch"],
+                    "semester": student["semester"],
+                    "skill_scores": skill_scores,
+                    "top_n": 3,
+                },
+                timeout=15,
+            )
+            response.raise_for_status()
+            careers = response.json()["recommendations"]
+
+        except requests.RequestException as exc:
+            st.error(f"Could not load career recommendations: {exc}")
+            st.stop()
+
+        st.session_state["user_profile"] = user_profile
+        st.session_state["careers"] = careers
+        st.session_state["assessment_complete"] = True
+        st.session_state["scroll_to_results"] = True
+        st.rerun()
 
 
 if st.session_state.get("assessment_complete", False) and st.session_state.get("careers"):
@@ -271,8 +386,97 @@ if st.session_state.get("assessment_complete", False) and st.session_state.get("
     average_score = round(sum(all_scores) / len(all_scores)) if all_scores else 0
     st.caption(f"{user_profile['branch']} • {user_profile['semester']} Semester • {demonstrated} demonstrated skills • {average_score}% average skill score")
 
-    top_career = careers[0]
-    top_details = get_career_match_details(user_profile, top_career)
+    # ---------------------------------------------------------------
+    # COMPLETE SKILL ASSESSMENT RESULTS — ALL 12 SKILLS
+    # ---------------------------------------------------------------
+    st.write("")
+    st.markdown(
+        "<div class='section-kicker'>YOUR COMPLETE ASSESSMENT</div>",
+        unsafe_allow_html=True
+    )
+    st.subheader("Your 12-skill scorecard")
+    st.caption(
+        "Scores combine self-assessment (40%) and objective assessment (60%)."
+    )
+
+    skill_results = user_profile.get("skill_results", {})
+
+    score_rows = []
+
+    for skill in SKILL_LABELS:
+        result = skill_results.get(skill, {})
+        final_score = user_profile["skill_scores"].get(skill, 0)
+
+        score_rows.append({
+            "Skill": SKILL_LABELS[skill],
+            "Self-assessment": f"{result.get('self_score', 0):.1f}%",
+            "Objective score": f"{result.get('objective_score', 0):.1f}%",
+            "Final score": f"{final_score:.1f}%",
+            "Level": result.get("level", "Not available"),
+            "Correct answers": (
+                f"{result.get('correct', 0)}/"
+                f"{result.get('total', 0)}"
+            )
+        })
+
+    # Display every skill in a readable table
+    st.dataframe(
+        score_rows,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    # Visual comparison of final scores
+    score_chart = go.Figure()
+
+    score_chart.add_trace(
+        go.Bar(
+            x=[
+                user_profile["skill_scores"].get(skill, 0)
+                for skill in SKILL_LABELS
+            ],
+            y=[
+                SKILL_LABELS[skill]
+                for skill in SKILL_LABELS
+            ],
+            orientation="h",
+            text=[
+                f"{user_profile['skill_scores'].get(skill, 0):.0f}%"
+                for skill in SKILL_LABELS
+            ],
+            textposition="outside",
+            marker=dict(color="#a78bfa"),
+            name="Final skill score"
+        )
+    )
+
+    score_chart.update_layout(
+        title="Final score by skill",
+        xaxis=dict(
+            title="Score (%)",
+            range=[0, 110],
+            gridcolor="rgba(255,255,255,.08)"
+        ),
+        yaxis=dict(autorange="reversed"),
+        height=540,
+        margin=dict(l=20, r=45, t=60, b=30),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#dce2ed"),
+        showlegend=False
+    )
+
+    st.plotly_chart(
+        score_chart,
+        use_container_width=True,
+        config={"displayModeBar": False}
+    )
+
+    st.divider()
+
+
+    top_details = careers[0]
+    top_career = top_details["career"]
 
     left, right = st.columns([1.35, .65], gap="large")
     with left:
@@ -293,13 +497,31 @@ if st.session_state.get("assessment_complete", False) and st.session_state.get("
     st.markdown("<div class='section-kicker'>CAREER DIRECTIONS</div>", unsafe_allow_html=True)
     career_cols = st.columns(len(careers), gap="medium")
     for idx, (col, career) in enumerate(zip(career_cols, careers), start=1):
-        details = get_career_match_details(user_profile, career)
-        with col:
-            st.markdown(f"<div class='career-card'><div class='career-rank'>0{idx} / CAREER PATH</div><div class='career-name'>{career}</div><div style='margin-top:10px;'><span class='career-score'>{details['match_score']}% match</span></div></div>", unsafe_allow_html=True)
+     with col:
+        st.markdown(
+            f"""
+            <div class='career-card'>
+                <div class='career-rank'>
+                    {idx:02d} / CAREER PATH
+                </div>
+                <div class='career-name'>
+                    {career['career']}
+                </div>
+                <div class='career-match'>
+                    {career['match_score']}% match
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-    st.write("")
-    selected_career = st.selectbox("Explore a career in detail", careers)
-    selected_details = get_career_match_details(user_profile, selected_career)
+    selected_details = st.selectbox(
+    "Explore a career in detail",
+    careers,
+    format_func=lambda item: item["career"]
+    )
+
+    selected_career = selected_details["career"]
     skill_gap = analyze_skill_gap(user_profile, selected_career)
 
     # Protect against an old imported skill_gap module during a hot reload.
@@ -338,7 +560,15 @@ if st.session_state.get("assessment_complete", False) and st.session_state.get("
             chart.add_trace(go.Bar(y=labels, x=current_scores, orientation="h", name="Current", marker=dict(color="#a78bfa")))
             chart.add_trace(go.Bar(y=labels, x=target_scores, orientation="h", name="Target", marker=dict(color="rgba(255,255,255,.10)")))
             chart.update_layout(barmode="overlay", height=max(330, 72 * len(rows)), margin=dict(l=10,r=30,t=10,b=20), xaxis=dict(range=[0,100], title="Score", gridcolor="rgba(255,255,255,.05)"), yaxis=dict(autorange="reversed"), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="#dce2ed"), legend=dict(orientation="h", y=1.08, x=0))
-            st.plotly_chart(chart, use_container_width=True, config={"displayModeBar":False})
+            st.plotly_chart(
+                chart,
+                use_container_width=True,
+                config={
+                    "displayModeBar": False,
+                    "staticPlot": True
+                },
+                on_select="ignore"
+            )
 
         with profile_col:
             st.markdown("<div class='section-kicker'>PROFILE SNAPSHOT</div>", unsafe_allow_html=True)

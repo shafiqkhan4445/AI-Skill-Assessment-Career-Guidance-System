@@ -21,7 +21,7 @@ CAREER_SKILL_MAP = {
 
     "Backend Developer": [
         "python",
-        "java",
+        "java", 
         "databases",
         "sql"
     ],
