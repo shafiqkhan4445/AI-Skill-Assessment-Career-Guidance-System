@@ -16,6 +16,7 @@ The system uses an explainable, rule-based career-matching approach rather than 
 - **Branch-Specific Assessment:** Supports CSE, ISE, and ECE with relevant technical skills and objective questions.
 - **Self-Assessment:** Allows students to rate their confidence in each skill on a scale of 1–5.
 - **Adaptive Objective Assessment:** Selects question difficulty based on the student's confidence rating and academic semester.
+- **Question Bank:** Provides three objective questions per skill at the selected difficulty level.
 - **Skill Score Calculation:** Combines self-assessment and objective assessment scores using a 40% and 60% weighting, respectively.
 - **Career Recommendations:** Suggests career paths based on assessed skills and predefined career requirements.
 - **Career Match Analysis:** Displays match scores and the skills associated with each recommended career.
@@ -138,9 +139,13 @@ The FastAPI backend provides the following main endpoints:
 | Method | Endpoint | Purpose |
 |---|---|---|
 | GET | `/` | Check API availability |
+| GET | `/api/health` | Check API service status |
+| GET | `/api/skills` | Retrieve the default skill list |
 | POST | `/api/assessment/questions` | Retrieve adaptive assessment questions |
 | POST | `/api/assessment/score` | Calculate skill assessment scores |
 | POST | `/api/recommendations` | Generate career recommendations |
+| POST | `/api/skill-gap` | Analyze skill gaps for a selected career |
+| POST | `/api/roadmap` | Generate a learning roadmap for a selected career |
 
 Interactive request and response schemas can be explored through the FastAPI documentation at `/docs`.
 
