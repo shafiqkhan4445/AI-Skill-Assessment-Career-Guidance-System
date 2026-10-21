@@ -1,3 +1,4 @@
+
 """Personalized learning roadmap generation with starter resources."""
 
 RESOURCE_MAP = {
@@ -61,7 +62,65 @@ RESOURCE_MAP = {
         "learn_label": "MySQL Tutorial",
         "video_url": "https://www.youtube.com/results?search_query=database+management+systems+DBMS+full+course+beginner",
     },
+
+    # ECE resources
+    "c programming": {
+        "learn_url": "https://www.learn-c.org/",
+        "learn_label": "Learn-C.org Interactive Tutorial",
+        "video_url": "https://www.youtube.com/results?search_query=embedded+C+programming+beginner",
+    },
+    "circuit analysis": {
+        "learn_url": "https://www.allaboutcircuits.com/textbook/",
+        "learn_label": "All About Circuits Textbook",
+        "video_url": "https://www.youtube.com/results?search_query=basic+circuit+analysis+course",
+    },
+    "digital electronics": {
+        "learn_url": "https://www.allaboutcircuits.com/textbook/digital/",
+        "learn_label": "All About Circuits — Digital",
+        "video_url": "https://www.youtube.com/results?search_query=digital+electronics+course",
+    },
+    "analog electronics": {
+        "learn_url": "https://www.allaboutcircuits.com/textbook/semiconductors/",
+        "learn_label": "All About Circuits — Semiconductors",
+        "video_url": "https://www.youtube.com/results?search_query=analog+electronics+course",
+    },
+    "signals and systems": {
+        "learn_url": "https://ocw.mit.edu/",
+        "learn_label": "MIT OpenCourseWare",
+        "video_url": "https://www.youtube.com/results?search_query=signals+and+systems+course",
+    },
+    "communication systems": {
+        "learn_url": "https://ocw.mit.edu/",
+        "learn_label": "MIT OpenCourseWare",
+        "video_url": "https://www.youtube.com/results?search_query=digital+communications+course",
+    },
+    "microcontrollers": {
+        "learn_url": "https://docs.arduino.cc/",
+        "learn_label": "Arduino Documentation",
+        "video_url": "https://www.youtube.com/results?search_query=microcontrollers+beginner+tutorial",
+    },
+    "embedded systems": {
+        "learn_url": "https://docs.arduino.cc/",
+        "learn_label": "Arduino Documentation",
+        "video_url": "https://www.youtube.com/results?search_query=embedded+systems+beginner+course",
+    },
+    "vlsi basics": {
+        "learn_url": "https://www.electronics-tutorials.ws/",
+        "learn_label": "Electronics Tutorials",
+        "video_url": "https://www.youtube.com/results?search_query=VLSI+design+basics+course",
+    },
+    "matlab": {
+        "learn_url": "https://www.mathworks.com/help/matlab/",
+        "learn_label": "MATLAB Documentation",
+        "video_url": "https://www.youtube.com/results?search_query=MATLAB+basics+course",
+    },
+    "pcb design": {
+        "learn_url": "https://docs.kicad.org/",
+        "learn_label": "KiCad Documentation",
+        "video_url": "https://www.youtube.com/results?search_query=PCB+design+KiCad+beginner",
+    },
 }
+
 
 ROADMAP_TEMPLATES = {
     "python": {
@@ -124,18 +183,80 @@ ROADMAP_TEMPLATES = {
         "practice": "Design a small schema and write queries for common database operations.",
         "build": "Build a database-backed application with a clear relational schema.",
     },
+
+    # ECE roadmap steps
+    "c programming": {
+        "learn": "Study C syntax, functions, pointers, arrays and memory basics for embedded programming.",
+        "practice": "Write small C programs using arrays, pointers and bitwise operations.",
+        "build": "Build a simple sensor-reading or microcontroller program.",
+    },
+    "circuit analysis": {
+        "learn": "Review Ohm's law, Kirchhoff's laws, network theorems and AC circuit fundamentals.",
+        "practice": "Solve circuit problems involving voltage, current, resistance and equivalent networks.",
+        "build": "Simulate and document a basic DC or AC circuit.",
+    },
+    "digital electronics": {
+        "learn": "Study logic gates, Boolean algebra, combinational circuits and sequential circuits.",
+        "practice": "Simplify Boolean expressions and solve logic-circuit exercises.",
+        "build": "Design a simple counter or digital logic circuit.",
+    },
+    "analog electronics": {
+        "learn": "Review diodes, transistors, amplifiers and semiconductor fundamentals.",
+        "practice": "Analyze basic diode and transistor circuits.",
+        "build": "Simulate a simple amplifier circuit.",
+    },
+    "signals and systems": {
+        "learn": "Study continuous and discrete signals, system properties, convolution and transforms.",
+        "practice": "Solve signal classification and basic convolution problems.",
+        "build": "Plot and analyze sample signals using MATLAB or Python.",
+    },
+    "communication systems": {
+        "learn": "Study modulation, demodulation, bandwidth, noise and digital communication fundamentals.",
+        "practice": "Compare modulation techniques and solve basic communication problems.",
+        "build": "Simulate a basic modulation and demodulation example.",
+    },
+    "microcontrollers": {
+        "learn": "Learn microcontroller architecture, GPIO, timers and sensor interfacing.",
+        "practice": "Write programs to read inputs and control outputs on a development board.",
+        "build": "Create a simple sensor or LED-control prototype.",
+    },
+    "embedded systems": {
+        "learn": "Study embedded C, hardware-software interaction and basic real-time concepts.",
+        "practice": "Practice GPIO control, sensor reading and debugging.",
+        "build": "Build a small embedded prototype using a microcontroller.",
+    },
+    "vlsi basics": {
+        "learn": "Study digital logic design, CMOS fundamentals and the VLSI design flow.",
+        "practice": "Practice Boolean simplification and basic digital circuit design.",
+        "build": "Create a small digital design and document its logic.",
+    },
+    "matlab": {
+        "learn": "Learn MATLAB variables, vectors, matrices, plots and basic scripts.",
+        "practice": "Write scripts to calculate values and plot signals.",
+        "build": "Create a simulation or visualization of an engineering concept.",
+    },
+    "pcb design": {
+        "learn": "Learn schematic capture, footprints, routing, design rules and PCB layout basics.",
+        "practice": "Create a schematic and route a simple two-layer board.",
+        "build": "Design a small PCB and run design-rule checks.",
+    },
 }
 
 
 def generate_roadmap(skill_gap_result):
     """Generate learning steps for the selected career's missing skills."""
     missing_skills = skill_gap_result.get("missing_skills", [])
-    skill_rows = {row["skill"]: row for row in skill_gap_result.get("skill_rows", [])}
+    skill_rows = {
+        row["skill"]: row
+        for row in skill_gap_result.get("skill_rows", [])
+    }
 
     roadmap = []
+
     for skill in missing_skills:
         skill_key = skill.lower()
         row = skill_rows.get(skill)
+
         template = ROADMAP_TEMPLATES.get(
             skill_key,
             {
@@ -144,6 +265,7 @@ def generate_roadmap(skill_gap_result):
                 "build": f"Build a small practical project using {skill.title()}.",
             },
         )
+
         resources = RESOURCE_MAP.get(skill_key, {})
 
         step = {
@@ -151,9 +273,22 @@ def generate_roadmap(skill_gap_result):
             "learn": template["learn"],
             "practice": template["practice"],
             "build": template["build"],
-            "learn_url": resources.get("learn_url", "https://www.google.com/search?q=" + skill.replace(" ", "+") + "+tutorial"),
-            "learn_label": resources.get("learn_label", f"{skill.title()} Learning Resource"),
-            "video_url": resources.get("video_url", "https://www.youtube.com/results?search_query=" + skill.replace(" ", "+") + "+tutorial"),
+            "learn_url": resources.get(
+                "learn_url",
+                "https://www.google.com/search?q="
+                + skill.replace(" ", "+")
+                + "+tutorial",
+            ),
+            "learn_label": resources.get(
+                "learn_label",
+                f"{skill.title()} Learning Resource",
+            ),
+            "video_url": resources.get(
+                "video_url",
+                "https://www.youtube.com/results?search_query="
+                + skill.replace(" ", "+")
+                + "+tutorial",
+            ),
         }
 
         if row:
@@ -177,7 +312,17 @@ def generate_roadmap(skill_gap_result):
 
         roadmap.append(step)
 
-    roadmap.sort(key=lambda item: (-item["gap"], -{"High": 3, "Medium": 2, "Low": 1, "Complete": 0}.get(item["priority"], 0)))
+    roadmap.sort(
+        key=lambda item: (
+            -item["gap"],
+            -{
+                "High": 3,
+                "Medium": 2,
+                "Low": 1,
+                "Complete": 0,
+            }.get(item["priority"], 0),
+        )
+    )
 
     return {
         "career": skill_gap_result.get("career", ""),

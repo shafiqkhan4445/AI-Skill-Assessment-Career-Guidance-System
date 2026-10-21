@@ -1,57 +1,47 @@
 CAREER_PROFILES = {
-
     "Data Analyst": {
         "skills": [
-            "python",
-            "sql",
-            "excel",
-            "data visualization",
-            "statistics"
+            "python", "sql", "excel",
+            "data visualization", "statistics"
         ],
-        "description":
-            "Turn data into useful insights, reports and decisions."
+        "description": "Turn data into useful insights, reports and decisions."
     },
-
     "Web Developer": {
-        "skills": [
-            "html",
-            "css",
-            "javascript"
-        ],
-        "description":
-            "Build and maintain modern websites and web applications."
+        "skills": ["html", "css", "javascript"],
+        "description": "Build and maintain modern websites and web applications."
     },
-
     "Machine Learning Engineer": {
-        "skills": [
-            "python",
-            "machine learning",
-            "statistics"
-        ],
-        "description":
-            "Build and evaluate machine-learning solutions from data."
+        "skills": ["python", "machine learning", "statistics"],
+        "description": "Build and evaluate machine-learning solutions from data."
     },
-
     "Backend Developer": {
-        "skills": [
-            "python",
-            "java",
-            "databases",
-            "sql"
-        ],
-        "description":
-            "Develop APIs, server-side logic and database-driven systems."
+        "skills": ["python", "java", "databases", "sql"],
+        "description": "Develop APIs, server-side logic and database-driven systems."
     },
-
     "Frontend Developer": {
+        "skills": ["html", "css", "javascript", "react"],
+        "description": "Create interactive and responsive user interfaces."
+    },
+    "Embedded Systems Engineer": {
         "skills": [
-            "html",
-            "css",
-            "javascript",
-            "react"
+            "c programming", "python", "microcontrollers",
+            "embedded systems", "digital electronics"
         ],
-        "description":
-            "Create interactive and responsive user interfaces."
+        "description": "Develop software and hardware for embedded devices and microcontrollers."
+    },
+    "Electronics Design Engineer": {
+        "skills": [
+            "circuit analysis", "analog electronics",
+            "digital electronics", "pcb design", "matlab"
+        ],
+        "description": "Design, test and improve electronic circuits and hardware."
+    },
+    "Communication Systems Engineer": {
+        "skills": [
+            "signals and systems", "communication systems",
+            "circuit analysis", "matlab"
+        ],
+        "description": "Work on communication technologies, signal processing and related systems."
     }
 }
 

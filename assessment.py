@@ -15,6 +15,25 @@ SKILL_LABELS = {
     "machine learning": "Machine Learning",
 }
 
+BRANCH_SKILL_LABELS = {
+    "CSE": dict(SKILL_LABELS),
+    "ISE": dict(SKILL_LABELS),
+    "ECE": {
+        "c programming": "C Programming",
+        "python": "Python",
+        "circuit analysis": "Circuit Analysis",
+        "digital electronics": "Digital Electronics",
+        "analog electronics": "Analog Electronics",
+        "signals and systems": "Signals & Systems",
+        "communication systems": "Communication Systems",
+        "microcontrollers": "Microcontrollers",
+        "embedded systems": "Embedded Systems",
+        "vlsi basics": "VLSI Basics",
+        "matlab": "MATLAB / Simulation",
+        "pcb design": "PCB Design & Debugging",
+    },
+}
+
 # We map confidence ratings to practical question difficulty bands.
 # 1-2 = Beginner, 3 = Intermediate, 4-5 = Advanced.
 DIFFICULTY_MAP = {
@@ -364,7 +383,210 @@ QUESTION_BANK = {
 
 
 # ------------------------------------------------------------------
-# EXPERT QUESTION BANK
+## ECE-specific question bank. Insert this block before the EXPERT QUESTION BANK section.
+# Each difficulty has three questions per skill; Python reuses the existing Python bank.
+_ECE_ITEMS = {
+    "c programming": {
+        "beginner": [
+            ("Which header declares printf() in C?", ["stdio.h", "stdlib.h", "string.h", "math.h"], 1),
+            ("Which format specifier is commonly used to print an int?", ["%c", "%d", "%s", "%f"], 2),
+            ("Array indexing in C starts at which value?", ["-1", "0", "1", "Depends on array size"], 2),
+        ],
+        "intermediate": [
+            ("What does a pointer store?", ["A memory address", "Only a character", "A loop count", "A file name"], 1),
+            ("Which operator accesses a structure member through a pointer?", [".", "->", "::", "&"], 2),
+            ("Which function allocates a block of memory dynamically?", ["printf()", "scanf()", "malloc()", "strlen()"], 3),
+        ],
+        "advanced": [
+            ("What is undefined behavior in C?", ["Behavior the C standard does not define", "A compiler warning only", "A required runtime message", "A type of comment"], 1),
+            ("What can happen when allocated memory is never freed and is no longer reachable?", ["A memory leak", "A syntax error", "An automatic reset", "A linker rename"], 1),
+            ("What does the static storage duration of a local variable generally mean?", ["It retains its value between function calls", "It is recreated on every call", "It is always stored in a CPU register", "It can only hold strings"], 1),
+        ],
+    },
+    "circuit analysis": {
+        "beginner": [
+            ("Ohm's law relates voltage to which product?", ["Current times resistance", "Current divided by resistance", "Resistance minus current", "Power divided by time"], 1),
+            ("Two resistors in series have what equivalent resistance?", ["The sum of their resistances", "The smaller resistance only", "Always zero", "The product only"], 1),
+            ("The SI unit of electric current is the:", ["Volt", "Ohm", "Ampere", "Watt"], 3),
+        ],
+        "intermediate": [
+            ("Kirchhoff's Current Law follows from conservation of:", ["Electric charge", "Magnetic flux only", "Resistance", "Frequency"], 1),
+            ("For an ideal voltage divider with two series resistors, the output across the lower resistor is:", ["Vin times Rlower divided by total resistance", "Always Vin", "Always zero", "Vin times total resistance"], 1),
+            ("The capacitive reactance of an ideal capacitor decreases when frequency:", ["Increases", "Decreases", "Becomes zero only", "Has no effect"], 1),
+        ],
+        "advanced": [
+            ("Thevenin's theorem replaces a linear two-terminal network with:", ["An equivalent voltage source and series resistance", "A current source only with no resistance", "A capacitor only", "An ideal transformer in every case"], 1),
+            ("The time constant of a simple series RC circuit is:", ["R divided by C", "R times C", "C divided by R", "R plus C"], 2),
+            ("In sinusoidal steady-state analysis, impedance is used to represent:", ["Opposition to AC including phase effects", "Only physical wire length", "Only DC current", "Power factor alone"], 1),
+        ],
+    },
+    "digital electronics": {
+        "beginner": [
+            ("An AND gate outputs 1 when:", ["All inputs are 1", "Any input is 1", "All inputs are 0", "Inputs differ"], 1),
+            ("The binary number 10 represents which decimal value?", ["1", "2", "10", "4"], 2),
+            ("A flip-flop is commonly used to store:", ["One bit", "One byte only", "An analog waveform", "A resistor value"], 1),
+        ],
+        "intermediate": [
+            ("A multiplexer selects:", ["One of several inputs for a single output", "One clock for every circuit", "An analog resistance", "Only a power supply"], 1),
+            ("An XOR gate outputs 1 when its two inputs are:", ["Different", "Both 0 only", "Both 1 only", "Always equal"], 1),
+            ("Karnaugh maps are mainly used to:", ["Simplify Boolean expressions", "Measure current", "Generate clock frequency", "Store program memory"], 1),
+        ],
+        "advanced": [
+            ("Setup time is the minimum time data must be stable:", ["Before the active clock edge", "After power is removed", "Only during reset", "After compilation"], 1),
+            ("A finite-state machine consists primarily of states and:", ["Transitions based on inputs", "Resistors and capacitors only", "Database tables", "Analog filters only"], 1),
+            ("A synchronous counter changes state in coordination with:", ["A clock signal", "A random noise source", "Output voltage only", "The board temperature only"], 1),
+        ],
+    },
+    "analog electronics": {
+        "beginner": [
+            ("A diode ideally allows current to flow mainly in:", ["One direction", "Both directions equally", "No direction under any condition", "Only through its case"], 1),
+            ("A BJT used as a switch is commonly driven between cutoff and:", ["Saturation", "Resonance", "Breakdown always", "Open-loop gain"], 1),
+            ("For an ideal op-amp, the input current is approximately:", ["Zero", "Infinite", "Equal to output current", "Always 1 ampere"], 1),
+        ],
+        "intermediate": [
+            ("The magnitude of the gain of an ideal inverting op-amp circuit is:", ["Rf divided by Rin", "Rin divided by Rf only with positive sign", "Always 1", "The supply voltage"], 1),
+            ("A rectifier converts AC into:", ["Pulsating DC", "Pure sine-wave AC at twice voltage", "Only digital data", "Resistance"], 1),
+            ("A common-emitter BJT amplifier typically provides:", ["Voltage gain with phase inversion", "No current or voltage gain in any case", "Only optical output", "A purely digital clock"], 1),
+        ],
+        "advanced": [
+            ("Negative feedback in an amplifier generally improves:", ["Gain stability and linearity", "Distortion in every case", "Sensitivity to component variation", "Output power without limits"], 1),
+            ("An op-amp's slew rate limits the maximum rate of change of its:", ["Output voltage", "Input resistance only", "Package mass", "DC supply polarity"], 1),
+            ("A differential amplifier responds primarily to the:", ["Difference between its two input signals", "Sum of supply voltages only", "Temperature of a PCB trace", "Absolute value of one resistor"], 1),
+        ],
+    },
+    "signals and systems": {
+        "beginner": [
+            ("The frequency of a periodic signal is measured in:", ["Hertz", "Ohms", "Coulombs", "Webers"], 1),
+            ("A sinusoidal signal is described by amplitude, frequency and:", ["Phase", "Resistance only", "Bit depth only", "Inductance only"], 1),
+            ("An impulse signal is often used to study a system's:", ["Impulse response", "PCB color", "Supply connector", "Source-code length"], 1),
+        ],
+        "intermediate": [
+            ("Convolution is used in LTI systems to find output from input and:", ["Impulse response", "Resistor color code", "Clock pin number only", "Battery capacity"], 1),
+            ("The Nyquist sampling condition requires a sampling rate greater than twice the:", ["Highest signal frequency", "Signal amplitude", "DC offset", "Number of channels"], 1),
+            ("A system is time-invariant when a time shift at its input produces:", ["The same time shift at its output", "A different system every time", "Zero output always", "Only a frequency doubling"], 1),
+        ],
+        "advanced": [
+            ("For an LTI system, the Fourier transform of the output is the product of input spectrum and:", ["System frequency response", "Input amplitude squared always", "Sampling interval only", "Resistance value"], 1),
+            ("A causal discrete-time system's impulse response is zero for:", ["Negative time indices", "All positive indices", "The zero index only", "Every index"], 1),
+            ("A band-limited signal can be reconstructed from ideal samples when sampled above its:", ["Nyquist rate", "DC level", "Peak amplitude", "Phase offset"], 1),
+        ],
+    },
+    "communication systems": {
+        "beginner": [
+            ("Modulation changes a carrier's property according to the:", ["Information signal", "PCB solder mask", "Resistor color", "Program variable name"], 1),
+            ("AM stands for:", ["Amplitude Modulation", "Analog Memory", "Automatic Matching", "Average Measurement"], 1),
+            ("Bandwidth is a measure of a signal's frequency:", ["Range", "Voltage only", "Cable weight", "Bit order"], 1),
+        ],
+        "intermediate": [
+            ("For conventional AM, the modulation index indicates the relative:", ["Amplitude of the modulating signal", "Length of the antenna only", "Resistance of the receiver", "Number of batteries"], 1),
+            ("Increasing signal-to-noise ratio generally improves reception quality because noise is:", ["Smaller relative to the signal", "Always eliminated completely", "Converted to bandwidth", "Required to exceed the signal"], 1),
+            ("A basic digital communication receiver makes decisions about transmitted:", ["Symbols or bits", "PCB layer colors", "Resistor packages", "Source-code indentation"], 1),
+        ],
+        "advanced": [
+            ("QAM conveys information by varying both amplitude and:", ["Phase", "Wire color", "DC resistance only", "Antenna height only"], 1),
+            ("A matched filter is designed to maximize output SNR for a known signal in:", ["Additive white Gaussian noise", "A noiseless circuit only", "A purely mechanical system", "An unpowered circuit"], 1),
+            ("Bit error rate is the ratio of incorrectly received bits to:", ["Total received bits", "Carrier frequency", "Antenna length", "Modulation amplitude"], 1),
+        ],
+    },
+    "microcontrollers": {
+        "beginner": [
+            ("A GPIO pin is commonly configured as an input or:", ["Output", "Database", "Compiler", "Frequency unit"], 1),
+            ("A timer peripheral can be used to measure time intervals or generate:", ["Periodic events", "PCB artwork", "Source-code comments", "A chemical signal"], 1),
+            ("An interrupt lets a processor respond to an event without:", ["Continuously polling it", "Running any instructions ever", "Using memory", "Having a clock"], 1),
+        ],
+        "intermediate": [
+            ("An ADC converts an analog input into a:", ["Digital representation", "Higher resistance automatically", "Clock crystal", "PCB layer"], 1),
+            ("UART communication commonly uses TX and:", ["RX", "VCC only", "SCL only", "MISO only"], 1),
+            ("PWM controls average delivered power by varying the signal's:", ["Duty cycle", "File extension", "Pin label font", "Compiler version"], 1),
+        ],
+        "advanced": [
+            ("DMA transfers data between peripherals and memory with reduced:", ["CPU involvement", "Clock frequency in every case", "Memory capacity", "Need for data integrity"], 1),
+            ("A watchdog timer helps recover when software:", ["Stops servicing it due to a fault", "Runs perfectly", "Prints a message", "Changes a variable name"], 1),
+            ("I2C devices share SDA and SCL; SCL is the:", ["Serial clock line", "Analog output line", "Reset-only line", "Power return only"], 1),
+        ],
+    },
+    "embedded systems": {
+        "beginner": [
+            ("Firmware is software designed to run on:", ["A hardware device or embedded system", "Only a spreadsheet", "A PCB solder mask", "A resistor"], 1),
+            ("A real-time system must meet required:", ["Timing deadlines", "Screen resolution only", "File naming rules only", "Internet speed in every case"], 1),
+            ("Memory-mapped I/O lets software access device registers through:", ["Addresses in the processor's address space", "Only printed labels", "A spreadsheet formula", "A web URL"], 1),
+        ],
+        "intermediate": [
+            ("An interrupt service routine should generally be kept short to reduce:", ["Interrupt latency for other work", "The number of CPU instructions to zero", "Memory size permanently", "The clock's physical size"], 1),
+            ("A hard real-time deadline miss can be considered:", ["A system failure", "Always harmless", "A syntax highlight", "A PCB color change"], 1),
+            ("An RTOS scheduler decides which ready task should:", ["Run next", "Be soldered next", "Change its binary format", "Replace the processor"], 1),
+        ],
+        "advanced": [
+            ("Priority inversion occurs when a high-priority task is blocked by a lower-priority task holding a:", ["Needed resource or lock", "Higher clock frequency", "PCB layer", "Compiler warning"], 1),
+            ("A bootloader commonly supports loading or updating:", ["Firmware", "Resistor values automatically", "Circuit diagrams only", "Antenna radiation patterns"], 1),
+            ("A race condition can occur when behavior depends on the timing of:", ["Concurrent operations", "The PCB's printed text", "A static logo", "An offline PDF"], 1),
+        ],
+    },
+    "vlsi basics": {
+        "beginner": [
+            ("CMOS logic commonly uses complementary:", ["NMOS and PMOS transistors", "Inductors only", "Mechanical switches only", "Optical fibers"], 1),
+            ("A CMOS inverter produces an output opposite to its:", ["Input logic level", "Supply label", "Package size", "Clock frequency in all cases"], 1),
+            ("VLSI stands for very-large-scale:", ["Integration", "Inductance", "Interference", "Insulation"], 1),
+        ],
+        "intermediate": [
+            ("Dynamic CMOS power is strongly related to switching activity, capacitance, and:", ["Supply voltage squared and frequency", "PCB color and font", "Only transistor package weight", "The number of comments"], 1),
+            ("Setup timing checks whether data arrives sufficiently early before a:", ["Clock edge", "PCB shipment", "Software release note", "Resistor label"], 1),
+            ("PVT corners refer to process, voltage, and:", ["Temperature", "Timing diagram color", "Transistor name length", "Test file path"], 1),
+        ],
+        "advanced": [
+            ("Static timing analysis evaluates timing paths without requiring:", ["Applying simulation vectors for every possible input", "A clock definition", "Cell delays", "Path constraints"], 1),
+            ("Metastability can occur when setup or hold requirements are violated at a:", ["Flip-flop input", "PCB silkscreen", "Resistor body", "Text editor"], 1),
+            ("A clock-domain crossing needs care because the two domains may have:", ["Unrelated clock timing", "Identical phase by definition", "No sequential logic", "Only analog signals"], 1),
+        ],
+    },
+    "matlab": {
+        "beginner": [
+            ("In MATLAB, the colon expression 1:3 creates:", ["A vector containing 1, 2, 3", "A matrix of all zeros", "A string", "A plot automatically"], 1),
+            ("Which MATLAB command is commonly used to plot y against x?", ["plot(x,y)", "draw(x,y)", "chart(x,y)", "graphfile(x,y)"], 1),
+            ("In MATLAB, the semicolon at the end of a statement usually suppresses:", ["Command-window output", "The calculation itself", "All variables", "The program file"], 1),
+        ],
+        "intermediate": [
+            ("The operator .* in MATLAB performs:", ["Element-wise multiplication", "Matrix inversion", "Commenting", "Matrix concatenation only"], 1),
+            ("For a matrix A, size(A) returns its:", ["Dimensions", "Determinant only", "Largest element only", "File size in bytes"], 1),
+            ("Which command creates a regularly spaced time vector from 0 to 1 with 101 points?", ["linspace(0,1,101)", "range(0,1,101)", "time(0,1)", "vector(101)"], 1),
+        ],
+        "advanced": [
+            ("The FFT is commonly used to compute a discrete signal's:", ["Frequency-domain representation", "PCB layout", "Power connector pinout", "Source-code checksum"], 1),
+            ("Why is vectorized MATLAB code often preferred over explicit loops for array operations?", ["It can use optimized array operations and reduce interpreter overhead", "It guarantees zero memory use", "It disables numerical rounding", "It removes the need to understand dimensions"], 1),
+            ("Ill-conditioned linear systems can cause small input errors to produce:", ["Large solution errors", "Guaranteed exact answers", "A change in programming language", "No numerical effect"], 1),
+        ],
+    },
+    "pcb design": {
+        "beginner": [
+            ("PCB silkscreen is mainly used for:", ["Component labels and board markings", "Carrying all high-speed signals", "Replacing copper traces", "Storing firmware"], 1),
+            ("A copper trace on a PCB provides an electrical:", ["Connection", "Software function", "Clock instruction", "Material test report"], 1),
+            ("A ground plane can provide a low-impedance return path and help reduce:", ["Noise and interference", "All component costs to zero", "The need for power", "All thermal effects"], 1),
+        ],
+        "intermediate": [
+            ("A decoupling capacitor placed near an IC supply pin helps provide local charge and reduce:", ["Supply noise", "Program size", "The number of PCB layers automatically", "Connector labels"], 1),
+            ("Differential high-speed signals are commonly routed as a pair with controlled:", ["Spacing and impedance", "Silkscreen font only", "Solder-mask color only", "Board serial number"], 1),
+            ("A via connects copper features on:", ["Different PCB layers", "Only the same point on one surface", "A source-code file", "A battery chemical cell"], 1),
+        ],
+        "advanced": [
+            ("A continuous reference plane helps high-speed routing by providing a predictable:", ["Return-current path", "Component value", "Firmware checksum", "Antenna protocol"], 1),
+            ("Controlled impedance is especially important when PCB trace dimensions affect:", ["High-speed signal reflections", "Silkscreen readability only", "The program's variable names", "The board's filename"], 1),
+            ("Thermal relief on a copper plane is designed to make a pad easier to:", ["Solder by reducing heat sinking", "Use as an antenna in every circuit", "Convert into software", "Disconnect from its net"], 1),
+        ],
+    },
+}
+
+ECE_QUESTION_BANK = {
+    skill: {
+        difficulty: [
+            _q(skill, difficulty, question, options, answer)
+            for question, options, answer in items
+        ]
+        for difficulty, items in bands.items()
+    }
+    for skill, bands in _ECE_ITEMS.items()
+}
+ECE_QUESTION_BANK["python"] = QUESTION_BANK["python"]
+#  EXPERT QUESTION BANK
 # Rating 5 is intentionally mapped to questions that test deeper
 # concepts, application and reasoning rather than simple definitions.
 # ------------------------------------------------------------------
@@ -478,34 +700,50 @@ def get_difficulty(confidence):
 
 
 
-def get_adaptive_questions(self_ratings, questions_per_skill=3, branch="CSE", semester=1):
-    """
-    Return the requested number of questions for each skill.
-    Difficulty considers confidence and semester.
-    """
+def get_adaptive_questions(
+    self_ratings,
+    questions_per_skill=3,
+    branch="CSE",
+    semester=1,
+):
+    """Select questions using branch, confidence, and semester."""
 
+    branch = str(branch).strip().upper()
+
+    if branch not in BRANCH_SKILL_LABELS:
+        raise ValueError("Branch must be CSE, ISE, or ECE.")
+
+    skill_labels = BRANCH_SKILL_LABELS[branch]
+    question_bank = ECE_QUESTION_BANK if branch == "ECE" else QUESTION_BANK
+
+    semester = max(1, min(8, int(semester)))
     selected = []
 
-    # Normalize semester to a valid range.
-    semester = max(1, min(8, int(semester)))
-
-    for skill in SKILL_LABELS:
+    for skill in skill_labels:
         confidence = self_ratings.get(skill, 3)
         difficulty = get_difficulty(confidence)
 
-        # Early-semester students get a gentler starting difficulty.
-        if semester <= 2:
-            if difficulty in ("advanced", "expert"):
-                difficulty = "intermediate"
-        elif semester <= 4:
-            if difficulty == "expert":
-                difficulty = "advanced"
+        if semester <= 2 and difficulty in ("advanced", "expert"):
+            difficulty = "intermediate"
+        elif semester <= 4 and difficulty == "expert":
+            difficulty = "advanced"
 
-        pool = QUESTION_BANK[skill][difficulty]
-        selected.extend(pool[:questions_per_skill])
+        skill_bank = question_bank.get(skill)
+
+        if not skill_bank:
+            raise ValueError(
+                f"No question bank configured for {branch}: {skill}"
+            )
+
+        # Some ECE subjects have no expert questions yet.
+        if difficulty not in skill_bank:
+            difficulty = "advanced" if "advanced" in skill_bank else "intermediate"
+
+        selected.extend(
+            skill_bank[difficulty][:questions_per_skill]
+        )
 
     return selected
-
 
 
 def calculate_skill_scores(self_ratings, quiz_answers):
@@ -518,12 +756,8 @@ def calculate_skill_scores(self_ratings, quiz_answers):
     """
     skill_results = {}
 
-    questions_by_skill = {skill: [] for skill in SKILL_LABELS}
-    for question in QUESTIONS:
-        questions_by_skill.setdefault(question["skill"], []).append(question)
-
-    # quiz_answers is keyed by a unique question id from app.py.
-    for skill in SKILL_LABELS:
+    # Score the skills included in this student's assessment.
+    for skill in self_ratings:
         confidence = int(self_ratings.get(skill, 3))
         self_score = round((confidence / 5) * 100)
 

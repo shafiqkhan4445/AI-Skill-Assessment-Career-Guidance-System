@@ -3,7 +3,7 @@ import streamlit.components.v1 as components
 import plotly.graph_objects as go
 import requests
 
-from assessment import SKILL_LABELS, get_adaptive_questions, get_difficulty
+from assessment import BRANCH_SKILL_LABELS, SKILL_LABELS, get_adaptive_questions, get_difficulty
 from recommendation import recommend_careers, get_career_match_details
 from skill_gap import analyze_skill_gap
 from roadmap import generate_roadmap
@@ -16,6 +16,11 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+
+if st.query_params.get("reset") == "1":
+    st.session_state.clear()
+    st.query_params["reset"] = "0"
+    st.rerun()
 
 if "assessment_complete" not in st.session_state:
     st.session_state["assessment_complete"] = False
@@ -91,54 +96,90 @@ st.markdown("<div class='section-kicker'>01 / STUDENT PROFILE</div>", unsafe_all
 if not st.session_state.get("assessment_complete", False) and st.session_state.get("assessment_stage", 1) == 1:
     st.header("Start with where you are.")
 
-    with st.form("student_profile_form"):
-        col1, col2, col3 = st.columns(3, gap="large")
-        with col1:
-            name = st.text_input("Full Name", value=st.session_state["student_info"].get("name", ""), placeholder="e.g. Shafiq Khan")
-        with col2:
-            branch_options = ["CSE", "ISE", "ECE", "EEE", "Other"]
-            saved_branch = st.session_state["student_info"].get("branch", "CSE")
-            branch = st.selectbox("Branch", branch_options, index=branch_options.index(saved_branch) if saved_branch in branch_options else 0)
-        with col3:
-            semester_options = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"]
-            saved_semester = st.session_state["student_info"].get("semester", "7th")
-            semester = st.selectbox("Semester", semester_options, index=semester_options.index(saved_semester) if saved_semester in semester_options else 6)
+    col1, col2, col3 = st.columns(3, gap="large")
 
-        st.write("")
-        st.markdown("<div class='section-kicker'>02 / SELF-ASSESSMENT</div>", unsafe_allow_html=True)
-        st.header("How confident are you in each skill?")
-        st.caption("Choose 1–5. Your rating determines the difficulty of the objective questions you receive next.")
-
-        self_ratings = {}
-        skill_items = list(SKILL_LABELS.items())
-        for start_idx in range(0, len(skill_items), 3):
-            cols = st.columns(3, gap="large")
-            for col, (skill, label) in zip(cols, skill_items[start_idx:start_idx+3]):
-                with col:
-                    previous = int(st.session_state["self_ratings"].get(skill, 3))
-                    self_ratings[skill] = st.select_slider(
-                        label,
-                        options=[1, 2, 3, 4, 5],
-                        value=previous,
-                        key=f"self_{skill.replace(' ','_')}"
-                    )
-
-        st.write("")
-        st.markdown(
-            "<div style='padding:15px 17px;border-radius:16px;background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.16);color:#b7bfd3;font-size:13px;'>"
-            "<b style='color:#f2f4ff;'>Adaptive assessment:</b> low confidence gives beginner questions, a mid-level rating gives intermediate questions, a rating of 4 gives advanced questions, and a rating of 5 gives expert-level questions."
-            "</div>",
-            unsafe_allow_html=True
+    with col1:
+        name = st.text_input(
+            "Full Name",
+            value=st.session_state["student_info"].get("name", ""),
+            placeholder="e.g. Shafiq Khan",
+            key="student_name"
         )
-        st.write("")
 
-        _, button_col, _ = st.columns([1.25, 1, 1.25])
-        with button_col:
-            continue_to_quiz = st.form_submit_button(
-                "Continue to Knowledge Check →",
-                type="primary",
-                use_container_width=True
-            )
+    with col2:
+        branch_options = ["CSE", "ISE", "ECE"]
+        saved_branch = st.session_state["student_info"].get("branch", "CSE")
+
+        branch = st.selectbox(
+            "Branch",
+            branch_options,
+            index=branch_options.index(saved_branch) if saved_branch in branch_options else 0,
+            key="selected_branch"
+        )
+
+    with col3:
+        semester_options = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"]
+        saved_semester = st.session_state["student_info"].get("semester", "7th")
+
+        semester = st.selectbox(
+            "Semester",
+            semester_options,
+            index=semester_options.index(saved_semester) if saved_semester in semester_options else 6,
+            key="selected_semester"
+        )
+
+    # Update the visible skills immediately when the branch changes.
+    previous_branch = st.session_state["student_info"].get("branch", "CSE")
+
+    if branch != previous_branch:
+        st.session_state["student_info"]["branch"] = branch
+        st.session_state["self_ratings"] = {}
+        st.rerun()
+
+    st.write("")
+    st.markdown(
+        "<div class='section-kicker'>02 / SELF-ASSESSMENT</div>",
+        unsafe_allow_html=True
+    )
+    st.header("How confident are you in each skill?")
+    st.caption(
+        "Choose 1–5. Your rating determines the difficulty of the objective questions you receive next."
+    )
+
+    self_ratings = {}
+    skill_items = list(BRANCH_SKILL_LABELS[branch].items())
+
+    for start_idx in range(0, len(skill_items), 3):
+        cols = st.columns(3, gap="large")
+
+        for col, (skill, label) in zip(cols, skill_items[start_idx:start_idx + 3]):
+            with col:
+                previous = int(st.session_state["self_ratings"].get(skill, 3))
+
+                self_ratings[skill] = st.select_slider(
+                    label,
+                    options=[1, 2, 3, 4, 5],
+                    value=previous,
+                    key=f"self_{skill.replace(' ', '_')}"
+                )
+
+    st.write("")
+    st.markdown(
+        "<div style='padding:15px 17px;border-radius:16px;background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.16);color:#b7bfd3;font-size:13px;'>"
+        "<b style='color:#f2f4ff;'>Adaptive assessment:</b> low confidence gives beginner questions, a mid-level rating gives intermediate questions, a rating of 4 gives advanced questions, and a rating of 5 gives expert-level questions."
+        "</div>",
+        unsafe_allow_html=True
+    )
+
+    st.write("")
+    _, button_col, _ = st.columns([1.25, 1, 1.25])
+
+    with button_col:
+        continue_to_quiz = st.button(
+            "Continue to Knowledge Check →",
+            type="primary",
+            use_container_width=True
+        )
 
     if continue_to_quiz:
         if not name.strip():
@@ -149,6 +190,7 @@ if not st.session_state.get("assessment_complete", False) and st.session_state.g
                 "branch": branch,
                 "semester": semester,
             }
+
             st.session_state["self_ratings"] = self_ratings
             st.session_state["assessment_stage"] = 2
             st.rerun()
@@ -165,10 +207,14 @@ if not st.session_state.get("assessment_complete", False) and st.session_state.g
     st.caption("The system created a 3-question set for every skill using the confidence ratings you submitted.")
 
     difficulty_summary = []
-    for skill in SKILL_LABELS:
-        rating = int(st.session_state["self_ratings"].get(skill, 3))
-        difficulty = get_difficulty(rating)
-        difficulty_summary.append((skill, rating, difficulty))
+    active_skill_labels = BRANCH_SKILL_LABELS[
+            st.session_state["student_info"]["branch"]
+        ]
+
+    for skill in active_skill_labels:
+            rating = int(st.session_state["self_ratings"].get(skill, 3))
+            difficulty = get_difficulty(rating)
+            difficulty_summary.append((skill, rating, difficulty))
 
     st.markdown(
         "<div style='display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 18px;'>"
@@ -186,7 +232,7 @@ if not st.session_state.get("assessment_complete", False) and st.session_state.g
         with summary_cols[idx % 3]:
             st.markdown(
                 f"<div class='mini-card' style='margin-bottom:10px;'>"
-                f"<div class='mini-kicker'>{SKILL_LABELS[skill].upper()}</div>"
+                f"<div class='mini-kicker'>{active_skill_labels[skill].upper()}</div>"
                 f"<div class='mini-value'>Confidence {rating}/5 • {difficulty.title()}</div>"
                 f"</div>",
                 unsafe_allow_html=True
@@ -229,8 +275,8 @@ if (
         st.error(f"Could not load assessment questions: {exc}")
         st.stop()
 
-    quiz_answers = {skill: [] for skill in SKILL_LABELS}
-    question_number_by_skill = {skill: 0 for skill in SKILL_LABELS}
+    quiz_answers = {skill: [] for skill in active_skill_labels}
+    question_number_by_skill = {skill: 0 for skill in active_skill_labels}
 
     with st.form("adaptive_knowledge_form"):
         for q_start in range(0, len(adaptive_questions), 2):
@@ -257,7 +303,7 @@ if (
                         f"space-between;gap:10px;align-items:center;'>"
                         f"<div style='color:#7f8ba5;font-size:10px;"
                         f"font-weight:850;letter-spacing:.13em;'>"
-                        f"{SKILL_LABELS[skill].upper()} • Q{q_num}/3"
+                        f"{BRANCH_SKILL_LABELS[st.session_state['student_info']['branch']][skill].upper()} • Q{q_num}/3"
                         f"</div><div class='chip'>{difficulty_label}</div>"
                         f"</div><div style='color:#f1f3fb;font-size:15px;"
                         f"font-weight:800;margin-top:8px;'>"
@@ -361,8 +407,12 @@ json={
             response.raise_for_status()
             careers = response.json()["recommendations"]
 
+        
         except requests.RequestException as exc:
-            st.error(f"Could not load career recommendations: {exc}")
+            if exc.response is not None:
+                st.error(f"Career recommendations error: {exc.response.text}")
+            else:
+                st.error(f"Career recommendations error: {exc}")
             st.stop()
 
         st.session_state["user_profile"] = user_profile
@@ -370,6 +420,7 @@ json={
         st.session_state["assessment_complete"] = True
         st.session_state["scroll_to_results"] = True
         st.rerun()
+
 
 
 if st.session_state.get("assessment_complete", False) and st.session_state.get("careers"):
@@ -401,14 +452,17 @@ if st.session_state.get("assessment_complete", False) and st.session_state.get("
 
     skill_results = user_profile.get("skill_results", {})
 
+    active_skill_labels = BRANCH_SKILL_LABELS[
+        user_profile.get("branch", "CSE")
+    ]
     score_rows = []
 
-    for skill in SKILL_LABELS:
+    for skill, label in active_skill_labels.items():
         result = skill_results.get(skill, {})
         final_score = user_profile["skill_scores"].get(skill, 0)
 
         score_rows.append({
-            "Skill": SKILL_LABELS[skill],
+            "Skill": label,
             "Self-assessment": f"{result.get('self_score', 0):.1f}%",
             "Objective score": f"{result.get('objective_score', 0):.1f}%",
             "Final score": f"{final_score:.1f}%",
@@ -433,16 +487,16 @@ if st.session_state.get("assessment_complete", False) and st.session_state.get("
         go.Bar(
             x=[
                 user_profile["skill_scores"].get(skill, 0)
-                for skill in SKILL_LABELS
+                for skill in active_skill_labels
             ],
             y=[
-                SKILL_LABELS[skill]
-                for skill in SKILL_LABELS
+                active_skill_labels[skill]
+                for skill in active_skill_labels
             ],
             orientation="h",
             text=[
                 f"{user_profile['skill_scores'].get(skill, 0):.0f}%"
-                for skill in SKILL_LABELS
+                for skill in active_skill_labels
             ],
             textposition="outside",
             marker=dict(color="#a78bfa"),
@@ -521,18 +575,41 @@ if st.session_state.get("assessment_complete", False) and st.session_state.get("
     format_func=lambda item: item["career"]
     )
 
+    
     selected_career = selected_details["career"]
-    skill_gap = analyze_skill_gap(user_profile, selected_career)
+    skill_rows = selected_details.get("skill_rows", [])
 
-    # Protect against an old imported skill_gap module during a hot reload.
-    if "skill_rows" not in skill_gap:
-        skill_gap["skill_rows"] = selected_details["skill_rows"]
-    if "matched_skills" not in skill_gap:
-        skill_gap["matched_skills"] = [row["skill"] for row in skill_gap["skill_rows"] if row["current_score"] >= row["required_score"]]
-    if "missing_skills" not in skill_gap:
-        skill_gap["missing_skills"] = [row["skill"] for row in skill_gap["skill_rows"] if row["current_score"] < row["required_score"]]
-    if "coverage" not in skill_gap:
-        skill_gap["coverage"] = selected_details["match_score"]
+    # Calculate the skill gaps directly from the selected career's scores.
+    for row in skill_rows:
+        current = float(row.get("current_score", 0))
+        target = float(row.get("required_score", 70))
+        row["current_score"] = current
+        row["required_score"] = target
+        row["gap"] = max(0, target - current)
+
+        if current >= target:
+            row["priority"] = "Complete"
+        elif row["gap"] >= 30:
+            row["priority"] = "High"
+        elif row["gap"] >= 15:
+            row["priority"] = "Medium"
+        else:
+            row["priority"] = "Low"
+
+    skill_gap = {
+        "career": selected_career,
+        "skill_rows": skill_rows,
+        "matched_skills": [
+            row["skill"] for row in skill_rows
+            if row["current_score"] >= row["required_score"]
+        ],
+        "missing_skills": [
+            row["skill"] for row in skill_rows
+            if row["current_score"] < row["required_score"]
+        ],
+        "coverage": selected_details.get("match_score", 0),
+    }
+
 
     st.write("")
     metric1, metric2, metric3, metric4 = st.columns(4, gap="medium")
